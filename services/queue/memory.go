@@ -20,6 +20,7 @@ func (b *memoryBroker) Close() error {
 type memoryQueue struct {
 	jobs []*Job
 	sync.RWMutex
+	idx int
 }
 
 func (q *memoryQueue) Publish(job *Job) error {
@@ -30,23 +31,23 @@ func (q *memoryQueue) Publish(job *Job) error {
 }
 
 func (q *memoryQueue) Consume() (JobIter, error) {
-	return &memoryJobIter{q.jobs, 0, &q.RWMutex}, nil
+	return &memoryJobIter{q.jobs, &q.idx, &q.RWMutex}, nil
 }
 
 type memoryJobIter struct {
 	jobs []*Job
-	idx  int
+	idx  *int
 	*sync.RWMutex
 }
 
 func (i *memoryJobIter) Next() (*Job, error) {
 	i.Lock()
 	defer i.Unlock()
-	if len(i.jobs) <= i.idx {
+	if len(i.jobs) <= *i.idx {
 		return nil, nil
 	}
-	j := i.jobs[i.idx]
-	i.idx++
+	j := i.jobs[*i.idx]
+	(*i.idx)++
 	return j, nil
 }
 
