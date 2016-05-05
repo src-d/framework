@@ -13,7 +13,7 @@ type contentType string
 const msgpackContentType contentType = "application/msgpack"
 
 type Job struct {
-	Id        string
+	ID        string
 	Priority  Priority
 	Timestamp time.Time
 
@@ -23,7 +23,7 @@ type Job struct {
 
 func NewJob() *Job {
 	return &Job{
-		Id:          bson.NewObjectId().Hex(),
+		ID:          bson.NewObjectId().Hex(),
 		Priority:    PriorityNormal,
 		Timestamp:   time.Now(),
 		contentType: msgpackContentType,

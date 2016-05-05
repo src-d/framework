@@ -76,7 +76,7 @@ func (q *AMQPQueue) Publish(j *Job) error {
 		false,
 		amqp.Publishing{
 			DeliveryMode: amqp.Persistent,
-			MessageId:    j.Id,
+			MessageId:    j.ID,
 			Priority:     uint8(j.Priority),
 			Timestamp:    j.Timestamp,
 			ContentType:  string(j.contentType),
@@ -135,7 +135,7 @@ func (i *AMQPJobIter) Close() error {
 
 func fromDelivery(d *amqp.Delivery) *Job {
 	j := NewJob()
-	j.Id = d.MessageId
+	j.ID = d.MessageId
 	j.Priority = Priority(d.Priority)
 	j.Timestamp = d.Timestamp
 	j.contentType = contentType(d.ContentType)

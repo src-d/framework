@@ -38,7 +38,7 @@ func (s *MemorySuite) TestIntegration(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(payload, Equals, true)
 
-	c.Assert(retrievedJob.Id, Equals, job.Id)
+	c.Assert(retrievedJob.ID, Equals, job.ID)
 	c.Assert(retrievedJob.Priority, Equals, job.Priority)
 	c.Assert(retrievedJob.Timestamp.Second(), Equals, job.Timestamp.Second())
 
