@@ -1,5 +1,7 @@
 package queue
 
+import "time"
+
 type Priority uint8
 
 const (
@@ -15,6 +17,7 @@ type Broker interface {
 
 type Queue interface {
 	Publish(*Job) error
+	PublishDelayed(*Job, time.Duration) error
 	Consume() (JobIter, error)
 }
 

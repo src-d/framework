@@ -1,6 +1,8 @@
 package queue
 
 import (
+	"time"
+
 	. "gopkg.in/check.v1"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -47,4 +49,38 @@ func (s *MemorySuite) TestIntegration(c *C) {
 
 	err = b.Close()
 	c.Assert(err, IsNil)
+}
+
+func (s *MemorySuite) TestDelayed(c *C) {
+	b := NewMemoryBroker()
+	q, err := b.Queue(bson.NewObjectId().Hex())
+	c.Assert(err, IsNil)
+
+	job := NewJob()
+	job.Encode("hello")
+	err = q.PublishDelayed(job, 1*time.Second)
+	c.Assert(err, IsNil)
+
+	i, err := q.Consume()
+	c.Assert(err, IsNil)
+
+	start := time.Now()
+	var since time.Duration
+	for {
+		j, err := i.Next()
+		c.Assert(err, IsNil)
+		if j == nil {
+			<-time.After(300 * time.Millisecond)
+			continue
+		}
+
+		since = time.Since(start)
+
+		var payload string
+		c.Assert(j.Decode(&payload), IsNil)
+		c.Assert(payload, Equals, "hello")
+		break
+	}
+
+	c.Assert(since >= 1*time.Second, Equals, true)
 }

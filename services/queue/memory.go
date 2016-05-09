@@ -1,6 +1,9 @@
 package queue
 
-import "sync"
+import (
+	"sync"
+	"time"
+)
 
 type memoryBroker struct {
 }
@@ -10,7 +13,7 @@ func NewMemoryBroker() Broker {
 }
 
 func (b *memoryBroker) Queue(name string) (Queue, error) {
-	return &memoryQueue{}, nil
+	return &memoryQueue{jobs: make([]*Job, 0, 10)}, nil
 }
 
 func (b *memoryBroker) Close() error {
@@ -30,12 +33,20 @@ func (q *memoryQueue) Publish(job *Job) error {
 	return nil
 }
 
+func (q *memoryQueue) PublishDelayed(job *Job, delay time.Duration) error {
+	go func() {
+		<-time.After(delay)
+		q.Publish(job)
+	}()
+	return nil
+}
+
 func (q *memoryQueue) Consume() (JobIter, error) {
-	return &memoryJobIter{q.jobs, &q.idx, &q.RWMutex}, nil
+	return &memoryJobIter{&q.jobs, &q.idx, &q.RWMutex}, nil
 }
 
 type memoryJobIter struct {
-	jobs []*Job
+	jobs *[]*Job
 	idx  *int
 	*sync.RWMutex
 }
@@ -43,10 +54,10 @@ type memoryJobIter struct {
 func (i *memoryJobIter) Next() (*Job, error) {
 	i.Lock()
 	defer i.Unlock()
-	if len(i.jobs) <= *i.idx {
+	if len(*i.jobs) <= *i.idx {
 		return nil, nil
 	}
-	j := i.jobs[*i.idx]
+	j := (*i.jobs)[*i.idx]
 	(*i.idx)++
 	return j, nil
 }

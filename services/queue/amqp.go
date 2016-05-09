@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sync/atomic"
+	"time"
 
 	"github.com/streadway/amqp"
 )
@@ -84,13 +85,48 @@ func (q *AMQPQueue) Publish(j *Job) error {
 		})
 }
 
+func (q *AMQPQueue) PublishDelayed(j *Job, delay time.Duration) error {
+	ttl := delay / time.Millisecond
+	delayedQueue, err := q.ch.QueueDeclare(
+		j.ID,  // name
+		true,  // durable
+		true,  // delete when unused
+		false, // exclusive
+		false, // no-wait
+		amqp.Table{
+			"x-dead-letter-exchange":    "",
+			"x-dead-letter-routing-key": q.queue.Name,
+			"x-message-ttl":             int32(ttl),
+			"x-expires":                 int32(ttl) * 2,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return q.ch.Publish(
+		"",
+		delayedQueue.Name,
+		false,
+		false,
+		amqp.Publishing{
+			DeliveryMode: amqp.Persistent,
+			MessageId:    j.ID,
+			Priority:     uint8(j.Priority),
+			Timestamp:    j.Timestamp,
+			ContentType:  string(j.contentType),
+			Body:         j.raw,
+		},
+	)
+}
+
 func (q *AMQPQueue) Consume() (JobIter, error) {
 	ch, err := q.conn.Channel()
 	if err != nil {
 		return nil, fmt.Errorf("failed to open a channel: %s", err)
 	}
 
-	// enforce to prefect only one job, if this is removed the hold queue
+	// enforce prefetching only one job, if this is removed the whole queue
 	// will be consumed.
 	if err := ch.Qos(1, 0, false); err != nil {
 		return nil, err
@@ -139,6 +175,8 @@ func fromDelivery(d *amqp.Delivery) *Job {
 	j.Priority = Priority(d.Priority)
 	j.Timestamp = d.Timestamp
 	j.contentType = contentType(d.ContentType)
+	j.acknowledger = d.Acknowledger
+	j.tag = d.DeliveryTag
 	j.raw = d.Body
 
 	return j

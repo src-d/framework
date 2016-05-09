@@ -1,8 +1,11 @@
 package queue
 
 import (
+	"errors"
 	"fmt"
 	"time"
+
+	"github.com/streadway/amqp"
 
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/vmihailenco/msgpack.v2"
@@ -17,8 +20,10 @@ type Job struct {
 	Priority  Priority
 	Timestamp time.Time
 
-	contentType contentType
-	raw         []byte
+	contentType  contentType
+	raw          []byte
+	acknowledger amqp.Acknowledger
+	tag          uint64
 }
 
 func NewJob() *Job {
@@ -42,6 +47,22 @@ func (j *Job) Encode(payload interface{}) error {
 
 func (j *Job) Decode(payload interface{}) error {
 	return decode(msgpackContentType, j.raw, &payload)
+}
+
+var errCantAck = errors.New("can't acknowledge this message, it does not come from a queue")
+
+func (j *Job) Ack() error {
+	if j.acknowledger == nil || j.tag == 0 {
+		return errCantAck
+	}
+	return j.acknowledger.Ack(j.tag, false)
+}
+
+func (j *Job) Reject(requeue bool) error {
+	if j.acknowledger == nil || j.tag == 0 {
+		return errCantAck
+	}
+	return j.acknowledger.Reject(j.tag, requeue)
 }
 
 func encode(mime contentType, p interface{}) ([]byte, error) {
