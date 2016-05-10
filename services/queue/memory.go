@@ -51,6 +51,18 @@ type memoryJobIter struct {
 	*sync.RWMutex
 }
 
+type mockAcknowledger struct{}
+
+func (*mockAcknowledger) Ack(tag uint64, multiple bool) error {
+	return nil
+}
+func (*mockAcknowledger) Nack(tag uint64, multiple bool, requeue bool) error {
+	return nil
+}
+func (*mockAcknowledger) Reject(tag uint64, requeue bool) error {
+	return nil
+}
+
 func (i *memoryJobIter) Next() (*Job, error) {
 	i.Lock()
 	defer i.Unlock()
@@ -59,6 +71,8 @@ func (i *memoryJobIter) Next() (*Job, error) {
 	}
 	j := (*i.jobs)[*i.idx]
 	(*i.idx)++
+	j.tag = 1
+	j.acknowledger = &mockAcknowledger{}
 	return j, nil
 }
 

@@ -34,6 +34,7 @@ func (s *MemorySuite) TestIntegration(c *C) {
 
 	retrievedJob, err := i.Next()
 	c.Assert(err, IsNil)
+	c.Assert(retrievedJob.Ack(), IsNil)
 
 	var payload bool
 	err = retrievedJob.Decode(&payload)
