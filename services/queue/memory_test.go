@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"fmt"
 	"time"
 
 	. "gopkg.in/check.v1"
@@ -84,4 +85,25 @@ func (s *MemorySuite) TestDelayed(c *C) {
 	}
 
 	c.Assert(since >= 1*time.Second, Equals, true)
+}
+
+func (s *MemorySuite) TestTransaction(c *C) {
+	b := NewMemoryBroker()
+	q, err := b.Queue(bson.NewObjectId().Hex())
+	c.Assert(err, IsNil)
+
+	c.Assert(q.Transaction(func(q Queue) error {
+		q.Publish(NewJob())
+		return fmt.Errorf("err")
+	}), IsNil)
+
+	c.Assert(q.(*memoryQueue).jobs, HasLen, 0)
+
+	c.Assert(q.Transaction(func(q Queue) error {
+		q.Publish(NewJob())
+		q.PublishDelayed(NewJob(), 3*time.Minute)
+		return nil
+	}), IsNil)
+
+	c.Assert(q.(*memoryQueue).jobs, HasLen, 2)
 }

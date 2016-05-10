@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -108,4 +109,45 @@ func (s *AMQPSuite) TestDelayed(c *C) {
 	}
 
 	c.Assert(since >= 1*time.Second, Equals, true)
+}
+
+func (s *AMQPSuite) TestTransaction(c *C) {
+	q, err := s.broker.Queue(bson.NewObjectId().Hex())
+	c.Assert(err, IsNil)
+
+	c.Assert(q.Transaction(func(q Queue) error {
+		job := NewJob()
+		c.Assert(job.Encode("hello"), IsNil)
+		c.Assert(q.Publish(job), IsNil)
+		return errors.New("foo")
+	}), IsNil)
+
+	i, err := q.Consume()
+	c.Assert(err, IsNil)
+	go func() {
+		j, err := i.Next()
+		c.Assert(err, IsNil)
+		c.Assert(j.Ack(), Not(IsNil))
+	}()
+	<-time.After(20 * time.Millisecond)
+	c.Assert(i.Close(), IsNil)
+
+	q, err = s.broker.Queue(bson.NewObjectId().Hex())
+	c.Assert(err, IsNil)
+	c.Assert(q.Transaction(func(q Queue) error {
+		job := NewJob()
+		c.Assert(job.Encode("hello"), IsNil)
+		c.Assert(q.Publish(job), IsNil)
+		return nil
+	}), IsNil)
+
+	iter, err := q.Consume()
+	c.Assert(err, IsNil)
+	j, err := iter.Next()
+	c.Assert(err, IsNil)
+	c.Assert(j, Not(IsNil))
+	var payload string
+	c.Assert(j.Decode(&payload), IsNil)
+	c.Assert(payload, Equals, "hello")
+	c.Assert(iter.Close(), IsNil)
 }

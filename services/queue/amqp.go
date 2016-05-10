@@ -120,6 +120,19 @@ func (q *AMQPQueue) PublishDelayed(j *Job, delay time.Duration) error {
 	)
 }
 
+func (q *AMQPQueue) Transaction(txcb TxCallback) error {
+	if err := q.ch.Tx(); err != nil {
+		return err
+	}
+
+	err := txcb(q)
+	if err != nil {
+		return q.ch.TxRollback()
+	}
+
+	return q.ch.TxCommit()
+}
+
 func (q *AMQPQueue) Consume() (JobIter, error) {
 	ch, err := q.conn.Channel()
 	if err != nil {

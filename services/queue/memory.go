@@ -23,7 +23,8 @@ func (b *memoryBroker) Close() error {
 type memoryQueue struct {
 	jobs []*Job
 	sync.RWMutex
-	idx int
+	idx                int
+	publishImmediately bool
 }
 
 func (q *memoryQueue) Publish(job *Job) error {
@@ -34,10 +35,23 @@ func (q *memoryQueue) Publish(job *Job) error {
 }
 
 func (q *memoryQueue) PublishDelayed(job *Job, delay time.Duration) error {
+	if q.publishImmediately {
+		return q.Publish(job)
+	}
 	go func() {
 		<-time.After(delay)
 		q.Publish(job)
 	}()
+	return nil
+}
+
+func (q *memoryQueue) Transaction(txcb TxCallback) error {
+	txQ := &memoryQueue{jobs: make([]*Job, 0, 10), publishImmediately: true}
+	if err := txcb(txQ); err != nil {
+		return nil
+	}
+
+	q.jobs = append(q.jobs, txQ.jobs...)
 	return nil
 }
 

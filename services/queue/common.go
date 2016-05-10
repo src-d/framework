@@ -15,9 +15,12 @@ type Broker interface {
 	Close() error
 }
 
+type TxCallback func(q Queue) error
+
 type Queue interface {
 	Publish(*Job) error
 	PublishDelayed(*Job, time.Duration) error
+	Transaction(TxCallback) error
 	Consume() (JobIter, error)
 }
 
