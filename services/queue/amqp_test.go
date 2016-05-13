@@ -115,19 +115,19 @@ func (s *AMQPSuite) TestTransaction(c *C) {
 	q, err := s.broker.Queue(bson.NewObjectId().Hex())
 	c.Assert(err, IsNil)
 
-	c.Assert(q.Transaction(func(q Queue) error {
+	c.Assert(q.Transaction(func(qu Queue) error {
 		job := NewJob()
 		c.Assert(job.Encode("hello"), IsNil)
-		c.Assert(q.Publish(job), IsNil)
+		c.Assert(qu.Publish(job), IsNil)
 		return errors.New("foo")
-	}), IsNil)
+	}), Not(IsNil))
 
 	i, err := q.Consume()
 	c.Assert(err, IsNil)
 	go func() {
 		j, err := i.Next()
 		c.Assert(err, IsNil)
-		c.Assert(j.Ack(), Not(IsNil))
+		c.Assert(j, IsNil)
 	}()
 	<-time.After(20 * time.Millisecond)
 	c.Assert(i.Close(), IsNil)

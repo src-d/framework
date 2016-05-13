@@ -96,8 +96,8 @@ func (q *AMQPQueue) PublishDelayed(j *Job, delay time.Duration) error {
 		amqp.Table{
 			"x-dead-letter-exchange":    "",
 			"x-dead-letter-routing-key": q.queue.Name,
-			"x-message-ttl":             int32(ttl),
-			"x-expires":                 int32(ttl) * 2,
+			"x-message-ttl":             int64(ttl),
+			"x-expires":                 int64(ttl) * 2,
 		},
 	)
 	if err != nil {
@@ -121,16 +121,30 @@ func (q *AMQPQueue) PublishDelayed(j *Job, delay time.Duration) error {
 }
 
 func (q *AMQPQueue) Transaction(txcb TxCallback) error {
-	if err := q.ch.Tx(); err != nil {
+	ch, err := q.conn.Channel()
+	if err != nil {
+		return fmt.Errorf("failed to open a channel: %s", err)
+	}
+	defer ch.Close()
+
+	if err := ch.Tx(); err != nil {
 		return err
 	}
 
-	err := txcb(q)
+	txQueue := &AMQPQueue{conn: q.conn, ch: ch, queue: q.queue}
+	err = txcb(txQueue)
 	if err != nil {
-		return q.ch.TxRollback()
+		if err := ch.TxRollback(); err != nil {
+			return err
+		}
+		return err
 	}
 
-	return q.ch.TxCommit()
+	if err := ch.TxCommit(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (q *AMQPQueue) Consume() (JobIter, error) {
@@ -169,7 +183,10 @@ type AMQPJobIter struct {
 }
 
 func (i *AMQPJobIter) Next() (*Job, error) {
-	d := <-i.c
+	d, ok := <-i.c
+	if !ok {
+		return nil, nil
+	}
 
 	return fromDelivery(&d), nil
 }
