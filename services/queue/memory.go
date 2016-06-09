@@ -6,14 +6,19 @@ import (
 )
 
 type memoryBroker struct {
+	queues map[string]Queue
 }
 
 func NewMemoryBroker() Broker {
-	return &memoryBroker{}
+	return &memoryBroker{make(map[string]Queue)}
 }
 
 func (b *memoryBroker) Queue(name string) (Queue, error) {
-	return &memoryQueue{jobs: make([]*Job, 0, 10)}, nil
+	if _, ok := b.queues[name]; !ok {
+		b.queues[name] = &memoryQueue{jobs: make([]*Job, 0, 10)}
+	}
+
+	return b.queues[name], nil
 }
 
 func (b *memoryBroker) Close() error {
