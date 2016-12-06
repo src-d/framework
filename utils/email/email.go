@@ -50,6 +50,6 @@ func isIgnoredTLD(s string) bool {
 func isSingleLabelDomain(s string) bool {
 	parts := strings.Split(s, "@")
 	last := parts[len(parts)-1]
-	labels :=  strings.Split(last, ".")
+	labels := strings.Split(last, ".")
 	return len(labels) == 1
 }

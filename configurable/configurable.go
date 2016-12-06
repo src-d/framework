@@ -1,4 +1,4 @@
-package container
+package configurable
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 /*
 Interface to allow InitConfig to properly configure the config struct using
 environment variables, default values and ETCD.
- */
+*/
 type Configurable interface {
 	EtcdConfigurable() bool
 	EtcdServers() string
@@ -30,8 +30,9 @@ func InitConfig(config Configurable) {
 
 	/*
 	   TODO: Leaving this as close as it was before.
-	   Should we create an interface for extending configuration?
+	   Should we create a way for extending configuration?
 	   Can we delay it until we know more about this issue?
+	   Will etcd survive?
 	*/
 	if config.EtcdConfigurable() {
 		if len(config.EtcdServers()) == 0 {

@@ -1,4 +1,4 @@
-package container
+package configurable
 
 var (
 	Config *BasicConfiguration = &BasicConfiguration{}

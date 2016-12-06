@@ -1,4 +1,4 @@
-package container
+package configurable
 
 // General initializators of differente connections, sessions, etc.
 
@@ -14,7 +14,7 @@ import (
 	Creates a new session to db given by the url with a given timeout
 
 	Panics if an error occurs
- */
+*/
 func CreateMgoSession(url string, timeout time.Duration) *mgo.Session {
 	session, err := mgo.DialWithTimeout(
 		url,
@@ -44,7 +44,7 @@ func (t *authTransport) CancelRequest(r *http.Request) {
 	Creates a new Elasticsearch client given the url, user and password
 
 	Panics if an error occurs
- */
+*/
 func CreateElasticsearchClient(url, user, password string) *elastic.Client {
 	httpClient := &http.Client{
 		Transport: &authTransport{
@@ -65,11 +65,9 @@ func CreateElasticsearchClient(url, user, password string) *elastic.Client {
 	return client
 }
 
-
 // TODO: Should we make this public so we can share a way to deal with errors?
 func checkError(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
-
