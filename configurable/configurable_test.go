@@ -1,73 +1,85 @@
-package configurable
+package configurable_test
 
 import (
+	"fmt"
 	"os"
-	"testing"
 
-	. "gopkg.in/check.v1"
+	"srcd.works/framework/configurable"
 )
 
-func Test(t *testing.T) { TestingT(t) }
+func ExampleInitConfig_initializesFieldWithoutDefault() {
+	type mockTestConfig struct {
+		configurable.BasicConfiguration
+		MyFieldWithoutDefault string
+	}
 
-type S struct{}
+	config := &mockTestConfig{}
 
-var _ = Suite(&S{})
+	configurable.InitConfig(config)
 
-type simpleTestConfig struct {
-	MyFieldWithoutDefault     string
-	MyFieldWithDefault        string `default:"mydefault"`
-	MyFieldFromEnv            string `envconfig:"MY_ENV_VAR"`
-	MyFieldFromEnvWithDefault string `envconfig:"MY_WINNING_ENV_VAR" default:"defaulted"`
+	fmt.Println(config.MyFieldWithoutDefault)
+	// Output:
 }
 
-func (c simpleTestConfig) EtcdConfigurable() bool {
-	return false
+func ExampleInitConfig_initializesFieldWithDefault() {
+	type mockTestConfig struct {
+		configurable.BasicConfiguration
+		MyFieldWithDefault string `default:"mydefault"`
+	}
+
+	config := &mockTestConfig{}
+
+	configurable.InitConfig(config)
+
+	fmt.Println(config.MyFieldWithDefault)
+	// Output: mydefault
 }
 
-func (c simpleTestConfig) EtcdServers() string {
-	return ""
-}
-func (c simpleTestConfig) EtcdEnvironment() string {
-	return ""
-}
+func ExampleInitConfig_initializesFieldFromEnvironment() {
+	type mockTestConfig struct {
+		configurable.BasicConfiguration
+		MyFieldFromEnv string `envconfig:"MY_ENV_VAR"`
+	}
 
-func (s *S) TestInitializesFieldWithoutDefault(c *C) {
-	config := &simpleTestConfig{}
-	InitConfig(config)
-	c.Assert(config.MyFieldWithoutDefault, Equals, "")
-}
-
-func (s *S) TestInitializesFieldWithDefault(c *C) {
-	config := &simpleTestConfig{}
-	InitConfig(config)
-
-	c.Assert(config.MyFieldWithDefault, Equals, "mydefault")
-}
-
-func (s *S) TestInitializesFieldFromEnvironment(c *C) {
 	expectedString := "my expected string"
 	os.Setenv("MY_ENV_VAR", expectedString)
-	config := &simpleTestConfig{}
-	InitConfig(config)
+	defer os.Unsetenv("MY_ENV_VAR")
+	config := &mockTestConfig{}
 
-	c.Assert(config.MyFieldFromEnv, Equals, expectedString)
-	os.Unsetenv("MY_ENV_VAR")
+	configurable.InitConfig(config)
+
+	fmt.Println(config.MyFieldFromEnv)
+	// Output: my expected string
 }
 
-func (s *S) TestEnvironmentValueWinsEvenIfThereIsAlsoDefault(c *C) {
+func ExampleInitConfig_environmentValueWinsEvenIfThereIsAlsoDefault() {
+	type mockTestConfig struct {
+		configurable.BasicConfiguration
+		MyFieldFromEnvWithDefault string `envconfig:"MY_WINNING_ENV_VAR" default:"defaulted"`
+	}
+
 	expectedString := "my expected string"
 	os.Setenv("MY_WINNING_ENV_VAR", expectedString)
-	config := &simpleTestConfig{}
-	InitConfig(config)
+	defer os.Unsetenv("MY_WINNING_ENV_VAR")
+	config := &mockTestConfig{}
 
-	c.Assert(config.MyFieldFromEnvWithDefault, Equals, expectedString)
-	os.Unsetenv("MY_WINNING_ENV_VAR")
+	configurable.InitConfig(config)
+
+	fmt.Println(config.MyFieldFromEnvWithDefault)
+	// Output: my expected string
 }
 
-func (s *S) TestDefaultIsAppliedIfThereIsNoEnvVar(c *C) {
-	os.Unsetenv("MY_WINNING_ENV_VAR")
-	config := &simpleTestConfig{}
-	InitConfig(config)
+func ExampleInitConfig_defaultIsAppliedIfThereIsNoEnvVar() {
+	type mockTestConfig struct {
+		configurable.BasicConfiguration
+		MyFieldFromEnvWithDefault string `envconfig:"MY_WINNING_ENV_VAR" default:"defaulted"`
+	}
 
-	c.Assert(config.MyFieldFromEnvWithDefault, Equals, "defaulted")
+	os.Unsetenv("MY_WINNING_ENV_VAR")
+	config := &mockTestConfig{}
+
+	configurable.InitConfig(config)
+
+	fmt.Println(config.MyFieldFromEnvWithDefault)
+	// Output: defaulted
 }

@@ -4,23 +4,12 @@ var (
 	Config *BasicConfiguration = &BasicConfiguration{}
 )
 
+// Default configuration
 type BasicConfiguration struct {
-	Environment string `envconfig:"ENVIRONMENT"`
-	Etcd        struct {
-		Servers string `envconfig:"ETCD_SERVERS",required:"true"`
-	}
 }
 
-func (c BasicConfiguration) EtcdConfigurable() bool {
-	return true
-}
-
-func (c BasicConfiguration) EtcdServers() string {
-	return c.Etcd.Servers
-}
-
-func (c BasicConfiguration) EtcdEnvironment() string {
-	return c.Environment
+// Default, specific initialization for BasicConfiguration
+func (c *BasicConfiguration) Init() {
 }
 
 func init() {

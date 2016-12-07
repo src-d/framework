@@ -1,20 +1,21 @@
-package configurable
+package configurable_test
 
 import (
-	. "gopkg.in/check.v1"
+	"fmt"
+
+	"srcd.works/framework/configurable"
 )
 
-var _ = Suite(&S{})
+func ExampleBasicConfiguration() {
+	type complexConfiguration struct {
+		configurable.BasicConfiguration
+		Value string `default:"hola"`
+	}
 
-type advancedConfiguration struct {
-	BasicConfiguration
-	Value string `default:"hola"`
-}
+	config := &complexConfiguration{}
 
-func (s *S) TestStructWithBasicConfigurationEmbededCanBeInitialized(c *C) {
-	config := &advancedConfiguration{}
+	configurable.InitConfig(config)
 
-	InitConfig(config)
-
-	c.Assert(config.Value, Equals, "hola")
+	fmt.Println(config.Value)
+	// Output: hola
 }
