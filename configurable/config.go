@@ -1,6 +1,7 @@
 package configurable
 
 var (
+	// Initialized BasicConfiguration
 	Config *BasicConfiguration = &BasicConfiguration{}
 )
 
