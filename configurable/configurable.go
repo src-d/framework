@@ -5,8 +5,8 @@ import (
 	"github.com/src-d/envconfig"
 )
 
-// Interface to allow InitConfig to properly configure the config struct using
-// environment variables, default values and ETCD.
+// Configurable allows InitConfig to properly configure the config struct using
+// environment variables and default values.
 type Configurable interface {
 	Init()
 }

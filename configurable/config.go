@@ -5,11 +5,11 @@ var (
 	Config *BasicConfiguration = &BasicConfiguration{}
 )
 
-// Default configuration
+// BasicConfiguration is the default configuration
 type BasicConfiguration struct {
 }
 
-// Default, specific initialization for BasicConfiguration
+// Init initializes BasicConfiguration
 func (c *BasicConfiguration) Init() {
 }
 
