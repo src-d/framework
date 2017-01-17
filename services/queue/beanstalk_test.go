@@ -1,35 +1,29 @@
 package queue
 
 import (
-	"errors"
-	"testing"
 	"time"
 
 	. "gopkg.in/check.v1"
 	"gopkg.in/mgo.v2/bson"
 )
 
-func Test(t *testing.T) { TestingT(t) }
-
-const amqpURL = "amqp://guest:guest@localhost:5672/"
-
-type AMQPSuite struct {
+type BeanstalkSuite struct {
 	broker Broker
 }
 
-var _ = Suite(&AMQPSuite{})
+var _ = Suite(&BeanstalkSuite{})
 
-func (s *AMQPSuite) SetUpSuite(c *C) {
-	b, err := NewAMQPBroker(amqpURL)
+func (s *BeanstalkSuite) SetUpSuite(c *C) {
+	b, err := NewBeanstalkBroker("127.0.0.1:11300")
 	c.Assert(err, IsNil)
 	s.broker = b
 }
 
-func (s *AMQPSuite) TearDownSuite(c *C) {
+func (s *BeanstalkSuite) TearDownSuite(c *C) {
 	c.Assert(s.broker.Close(), IsNil)
 }
 
-func (s *AMQPSuite) TestPublishAndConsume(c *C) {
+func (s *BeanstalkSuite) TestPublishAndConsume(c *C) {
 	q, err := s.broker.Queue(bson.NewObjectId().Hex())
 	c.Assert(err, IsNil)
 
@@ -57,7 +51,7 @@ func (s *AMQPSuite) TestPublishAndConsume(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(payload, Equals, true)
 
-	c.Assert(retrievedJob.ID, Equals, job.ID)
+	c.Assert(retrievedJob.tag, Equals, job.tag)
 	c.Assert(retrievedJob.Priority, Equals, job.Priority)
 	c.Assert(retrievedJob.Timestamp.Second(), Equals, job.Timestamp.Second())
 
@@ -74,11 +68,14 @@ func (s *AMQPSuite) TestPublishAndConsume(c *C) {
 		c.Assert(payload, Equals, k)
 	}
 
+	_, err = i.Next()
+	c.Assert(err, Not(IsNil))
+
 	err = i.Close()
 	c.Assert(err, IsNil)
 }
 
-func (s *AMQPSuite) TestDelayed(c *C) {
+func (s *BeanstalkSuite) TestDelayed(c *C) {
 	q, err := s.broker.Queue(bson.NewObjectId().Hex())
 	c.Assert(err, IsNil)
 
@@ -109,48 +106,4 @@ func (s *AMQPSuite) TestDelayed(c *C) {
 	}
 
 	c.Assert(since >= 1*time.Second, Equals, true)
-}
-
-func (s *AMQPSuite) TestTransaction(c *C) {
-	q, err := s.broker.Queue(bson.NewObjectId().Hex())
-	c.Assert(err, IsNil)
-
-	err = q.Transaction(func(qu Queue) error {
-		job := NewJob()
-		c.Assert(job.Encode("goodbye"), IsNil)
-		c.Assert(qu.Publish(job), IsNil)
-		return errors.New("foo")
-	})
-	c.Assert(err, Not(IsNil))
-
-	i, err := q.Consume()
-	c.Assert(err, IsNil)
-	go func() {
-		j, err := i.Next()
-		c.Assert(err, IsNil)
-		c.Assert(j, IsNil)
-	}()
-	<-time.After(50 * time.Millisecond)
-	c.Assert(i.Close(), IsNil)
-
-	q, err = s.broker.Queue(bson.NewObjectId().Hex())
-	c.Assert(err, IsNil)
-
-	err = q.Transaction(func(q Queue) error {
-		job := NewJob()
-		c.Assert(job.Encode("hello"), IsNil)
-		c.Assert(q.Publish(job), IsNil)
-		return nil
-	})
-	c.Assert(err, IsNil)
-
-	iter, err := q.Consume()
-	c.Assert(err, IsNil)
-	j, err := iter.Next()
-	c.Assert(err, IsNil)
-	c.Assert(j, Not(IsNil))
-	var payload string
-	c.Assert(j.Decode(&payload), IsNil)
-	c.Assert(payload, Equals, "hello")
-	c.Assert(iter.Close(), IsNil)
 }

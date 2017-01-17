@@ -1,6 +1,9 @@
 package queue
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type Priority uint8
 
@@ -9,6 +12,8 @@ const (
 	PriorityNormal Priority = 4
 	PriorityLow    Priority = 0
 )
+
+var ErrEmptyJob = errors.New("invalid empty job")
 
 type Broker interface {
 	Queue(string) (Queue, error)

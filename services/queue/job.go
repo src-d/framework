@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/streadway/amqp"
-
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/vmihailenco/msgpack.v2"
 )
@@ -22,8 +20,13 @@ type Job struct {
 
 	contentType  contentType
 	raw          []byte
-	acknowledger amqp.Acknowledger
+	acknowledger Acknowledger
 	tag          uint64
+}
+
+type Acknowledger interface {
+	Ack() error
+	Reject(requeue bool) error
 }
 
 func NewJob() *Job {
@@ -52,17 +55,17 @@ func (j *Job) Decode(payload interface{}) error {
 var errCantAck = errors.New("can't acknowledge this message, it does not come from a queue")
 
 func (j *Job) Ack() error {
-	if j.acknowledger == nil || j.tag == 0 {
+	if j.acknowledger == nil {
 		return errCantAck
 	}
-	return j.acknowledger.Ack(j.tag, false)
+	return j.acknowledger.Ack()
 }
 
 func (j *Job) Reject(requeue bool) error {
-	if j.acknowledger == nil || j.tag == 0 {
+	if j.acknowledger == nil {
 		return errCantAck
 	}
-	return j.acknowledger.Reject(j.tag, requeue)
+	return j.acknowledger.Reject(requeue)
 }
 
 func encode(mime contentType, p interface{}) ([]byte, error) {

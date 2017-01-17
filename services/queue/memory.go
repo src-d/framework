@@ -72,13 +72,11 @@ type memoryJobIter struct {
 
 type mockAcknowledger struct{}
 
-func (*mockAcknowledger) Ack(tag uint64, multiple bool) error {
+func (*mockAcknowledger) Ack() error {
 	return nil
 }
-func (*mockAcknowledger) Nack(tag uint64, multiple bool, requeue bool) error {
-	return nil
-}
-func (*mockAcknowledger) Reject(tag uint64, requeue bool) error {
+
+func (*mockAcknowledger) Reject(requeue bool) error {
 	return nil
 }
 
