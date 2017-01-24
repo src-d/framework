@@ -26,9 +26,7 @@ publish:
       event: tag
     
 compose:
-  beanstalkd:
-    image: schickling/beanstalkd
-  rabbitmq: 
+  rabbitmq:
     image: rabbitmq
 
 notify:
