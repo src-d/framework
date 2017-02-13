@@ -28,7 +28,7 @@ type DatabaseConfig struct {
 	// SSLMode used to specify the way of using SSL in the connection.
 	SSLMode SSLMode `envconfig:"dbsslmode" default:"disable"`
 	// AppName is the name of the app using the connection.
-	AppName string `envconfig="dbappname"`
+	AppName string `envconfig:"dbappname"`
 	// Timeout is the number time to consider a connection timed out.
 	Timeout time.Duration `envconfig:"dbtimeout" default:"30s"`
 }
