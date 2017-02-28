@@ -1,14 +1,11 @@
-# Framework
+# framework
+[![Build Status](http://drone.srcd.host/api/badges/src-d/framework/status.svg)](http://drone.srcd.host/src-d/framework)
+[![codecov.io](https://codecov.io/gh/src-d/framework/branch/master/graph/badge.svg?token=am2H6bJkdp)](https://codecov.io/gh/src-d/framework)
 
-## Description
+**framework** provides abstractions to services used across multiple projects.
 
-Base package for src-d codebase. This package contain generic tools to be used
-in different core packages for different parts of our platform.
+## Services
 
-So far, contains the following packages:
-
-* **Configurable** standarizes the way to create containers.
-* **Datbase** uses `configurable` to model database connection
-  configurations.
-* **Queue** defines interfaces for working with queue and implements them for
-  AMQP and an in-memory queue.
+* **configurable** standarizes the way to create configuration containers.
+* **database** package provides access to SQL databases.
+* **queue** provides access to message brokers.
