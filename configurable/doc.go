@@ -1,2 +1,2 @@
-// Package exposing methods for initializing configuration structs.
+// Package configurable exposes methods for initializing configuration structs.
 package configurable
