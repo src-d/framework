@@ -7,7 +7,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-	"srcd.works/framework.v0/configurable"
+	"gopkg.in/src-d/framework.v0/configurable"
 )
 
 // DatabaseConfig describes the configuration of the database parameters used
