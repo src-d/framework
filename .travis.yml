@@ -1,0 +1,25 @@
+language: go
+
+go:
+  - 1.8.1
+  - tip
+
+go_import_path: gopkg.in/src-d/framework.v0
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - go: tip
+
+sudo: required
+
+services:
+  - docker
+  - rabbitmq
+  - postgresql
+
+install:
+  - make dependencies
+
+script:
+  - make test-coverage
