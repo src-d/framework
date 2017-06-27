@@ -3,7 +3,7 @@ package configurable_test
 import (
 	"fmt"
 
-	"srcd.works/framework.v0/configurable"
+	"gopkg.in/src-d/framework.v0/configurable"
 )
 
 func ExampleBasicConfiguration() {

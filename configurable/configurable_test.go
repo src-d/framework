@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"srcd.works/framework.v0/configurable"
+	"gopkg.in/src-d/framework.v0/configurable"
 )
 
 func ExampleInitConfig_initializesFieldWithoutDefault() {
