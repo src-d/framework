@@ -20,3 +20,9 @@ Tests require the following services running:
 * RabbitMQ
 
 They also need the `etcd` binary present in `PATH`.
+
+## License
+
+Licensed under the terms of the Apache License Version 2.0. See the `LICENSE`
+file for the full license text.
+
