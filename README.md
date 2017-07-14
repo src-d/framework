@@ -7,3 +7,16 @@
 * **configurable** standarizes the way to create configuration containers.
 * **database** package provides access to SQL databases.
 * **queue** provides access to message brokers.
+
+## Development
+
+Run tests with:
+
+  go test -v ./...
+
+Tests require the following services running:
+
+* PostgreSQL
+* RabbitMQ
+
+They also need the `etcd` binary present in `PATH`.
