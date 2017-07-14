@@ -18,6 +18,12 @@ services:
   - rabbitmq
   - postgresql
 
+before_install:
+  - export ETCD_VERSION=v3.2.0
+  - wget https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
+  - tar xvzf etcd-${ETCD_VERSION}-linux-amd64.tar.gz
+  - sudo mv etcd-${ETCD_VERSION}-linux-amd64/etcd /usr/local/bin/
+
 install:
   - make dependencies
 
