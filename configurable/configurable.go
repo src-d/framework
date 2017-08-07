@@ -1,8 +1,7 @@
 package configurable
 
 import (
-	"github.com/mcuadros/go-defaults"
-	"github.com/src-d/envconfig"
+	"github.com/kelseyhightower/envconfig"
 )
 
 // Configurable allows InitConfig to properly configure the config struct using
@@ -13,9 +12,6 @@ type Configurable interface {
 
 // Initializes the configuration
 func InitConfig(config Configurable) {
-	defer defaults.SetDefaults(config)
-
 	envconfig.MustProcess("config", config)
-
 	config.Init()
 }
