@@ -125,6 +125,11 @@ func (i *memoryJobIter) Next() (*Job, error) {
 		}
 
 		j, err := i.next()
+		if err == io.EOF {
+			_ = i.Close()
+			return nil, err
+		}
+
 		if err != nil {
 			time.Sleep(1 * time.Second)
 			continue
