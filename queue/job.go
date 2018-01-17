@@ -42,13 +42,18 @@ type Acknowledger interface {
 
 // NewJob creates a new Job with default values, a new unique ID and current
 // timestamp.
-func NewJob() *Job {
+func NewJob() (*Job, error) {
+	u, err := uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Job{
-		ID:          uuid.NewV4().String(),
+		ID:          u.String(),
 		Priority:    PriorityNormal,
 		Timestamp:   time.Now(),
 		contentType: msgpackContentType,
-	}
+	}, nil
 }
 
 // Encode encodes the payload to the wire format used.
