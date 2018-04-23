@@ -72,26 +72,42 @@ func connect(url string) (*amqp.Connection, *amqp.Channel) {
 	// first try to connect again
 	var conn *amqp.Connection
 	var err error
+	logErr := true
 	for {
 		conn, err = amqp.Dial(url)
 		if err != nil {
-			log15.Error("error connecting to amqp", "err", err)
+			if logErr {
+				log15.Error("error connecting to amqp", "err", err)
+				log15.Debug("retrying connect to amqp...")
+				logErr = false
+			}
+
 			<-time.After(1 * time.Second)
 			continue
 		}
+
+		log15.Debug("amqp connection established")
 
 		break
 	}
 
 	// try to get the channel again
 	var ch *amqp.Channel
+	logErr = true
 	for {
 		ch, err = conn.Channel()
 		if err != nil {
-			log15.Error("error creatting channel", "err", err)
+			if logErr {
+				log15.Error("error creatting channel", "err", err)
+				log15.Info("retrying create channel...")
+				logErr = false
+			}
+
 			<-time.After(1 * time.Second)
 			continue
 		}
+
+		log15.Info("amqp channel created")
 
 		break
 	}
