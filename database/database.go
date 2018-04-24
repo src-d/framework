@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"gopkg.in/src-d/framework.v0/configurable"
-	errors "gopkg.in/src-d/go-errors.v1"
+	"gopkg.in/src-d/go-errors.v1"
 
 	_ "github.com/lib/pq"
 )

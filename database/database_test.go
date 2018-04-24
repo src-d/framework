@@ -129,7 +129,7 @@ func TestGet(t *testing.T) {
 	require := require.New(t)
 
 	_, err := Get(nil)
-	require.EqualError(ErrNoConfig.New(), err.Error())
+	require.True(ErrNoConfig.Is(err))
 
 	db, err := Get(DefaultConfig)
 	require.Nil(err)
