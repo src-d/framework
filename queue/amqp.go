@@ -78,7 +78,7 @@ func connect(url string) (*amqp.Connection, *amqp.Channel) {
 		if err != nil {
 			if lastErr == nil || err.Error() != lastErr.Error() {
 				log15.Error("error connecting to amqp", "err", err)
-				log15.Debug("retrying connect to amqp...")
+				log15.Info("retrying connect to amqp...")
 				lastErr = err
 			}
 
@@ -86,7 +86,7 @@ func connect(url string) (*amqp.Connection, *amqp.Channel) {
 			continue
 		}
 
-		log15.Debug("amqp connection established")
+		log15.Info("amqp connection established")
 
 		break
 	}
