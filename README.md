@@ -17,15 +17,10 @@ Run tests with:
 Tests require the following services running:
 
 * PostgreSQL
-
-```
-docker run --name test-postgres -e POSTGRES_PASSWORD=testing -p 5432:5432 -e POSTGRES_USER=testing
-```
-
 * RabbitMQ
 
 ```
-docker run --hostname rabbit --name rabbit -p 8080:15672 -p 5672:5672 rabbitmq:3-management
+$ docker-compose up
 ```
 
 They also need the `etcd` binary present in `PATH`.
