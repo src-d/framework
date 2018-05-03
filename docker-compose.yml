@@ -1,0 +1,19 @@
+version: '2'
+services:
+    postgres:
+        container_name: framework-testing-postgres
+        image: postgres:9.6-alpine
+        environment:
+            POSTGRES_DB: testing
+            POSTGRES_USER: testing
+            POSTGRES_PASSWORD: testing
+        ports:
+            - "5432:5432"
+
+    rabbitmq:
+        container_name: framework-testing-rabbitmq
+        image: rabbitmq:3-management
+        ports:
+            - "8081:15672"
+            - "5672:5672"
+
